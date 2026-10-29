@@ -75,7 +75,6 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .cat-img{display:block;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
 .wear{position:absolute;pointer-events:none;transform:translate(-50%,-50%)}
 .wear-head{transform:translate(-50%,-100%)}
-.wear-neck{transform:translate(-50%,0)}
 .wear img{display:block;width:100%;height:auto;filter:drop-shadow(0 2px 2px rgba(34,49,74,.25))}
 .cat[data-cat="leo"]{width:min(46%,270px)}
 .cat[data-cat="nifty"]{width:min(36%,200px)}
@@ -350,26 +349,28 @@ const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.f
 /* at: [x %, y %, ancho %] de cada lugar para la ropa, medido sobre la imagen del gato */
 const CATS = {
   leo:   { name: 'Leo',   ratio: '639 / 640', art: { normal: 'img/leo-normal.webp', feliz: 'img/leo-feliz.webp' },
-           at: { head: [56, 13, 30], eyes: [56.5, 25.5, 33], ear: [71, 12, 17], neck: [55, 35, 36], body: [54, 56, 52] } },
+           at: { head: [56, 13, 30], eyes: [56.5, 25.5, 33], ear: [71, 12, 17] } },
   nifty: { name: 'Nifty', ratio: '579 / 640', art: { normal: 'img/nifty-normal.webp', feliz: 'img/nifty-feliz.webp' },
-           at: { head: [53, 16, 30], eyes: [52.5, 34, 42], ear: [70, 15, 22], neck: [53, 46, 42], body: [53, 66, 54] } },
+           at: { head: [53, 16, 30], eyes: [52.5, 34, 42], ear: [70, 15, 22] } },
 };
-const SLOTS = ['body', 'neck', 'eyes', 'ear', 'head'];
+const SLOTS = ['eyes', 'ear', 'head'];
 
 /* ---------- Boutique Miau ---------- */
-/* w: ancho respecto al lugar, dy: cuánto bajarlo (% de la altura del gato). Lo del cuello cuelga desde la barbilla. */
+/* w: ancho respecto al lugar, dy: cuánto bajarlo (% de la altura del gato).
+   slot 'ropa': no se pone encima - el gato cambia a su imagen ya vestido (img/leo-feliz-abeja.webp). Solo una ropa a la vez. */
 const ITEMS = [
-  { id: 'collar',   name: 'Collar con cascabel', price: 5,  slot: 'neck', w: .85 },
+  { id: 'collar',   name: 'Collar con cascabel', price: 5,  slot: 'ropa' },
   { id: 'mono',     name: 'Moño rosado',         price: 8,  slot: 'ear',  w: 1 },
   { id: 'flor',     name: 'Flor',                price: 10, slot: 'ear',  w: .8 },
   { id: 'lentes',   name: 'Lentes redondos',     price: 15, slot: 'eyes', w: 1 },
   { id: 'antenas',  name: 'Antenitas de abeja',  price: 15, slot: 'head', w: 1.55, dy: 9 },
-  { id: 'bufanda',  name: 'Bufanda',             price: 20, slot: 'neck', w: 1 },
+  { id: 'bufanda',  name: 'Bufanda',             price: 20, slot: 'ropa' },
   { id: 'gorrito',  name: 'Gorrito de fiesta',   price: 25, slot: 'head', w: .8 },
   { id: 'sombrero', name: 'Sombrero de copa',    price: 35, slot: 'head', w: 1.15 },
-  { id: 'abeja',    name: 'Disfraz de abeja',    price: 40, slot: 'body', w: 1 },
+  { id: 'abeja',    name: 'Disfraz de abeja',    price: 40, slot: 'ropa' },
   { id: 'corona',   name: 'Corona',              price: 50, slot: 'head', w: 1 },
 ].map(it => ({ ...it, pic: `img/ropa-${it.id}.webp` }));
+const artSrc = (id, mood) => { const r = S.wear[id] && S.wear[id].ropa; return r ? `img/${id}-${mood}-${r}.webp` : CATS[id].art[mood]; };
 
 /* ---------- El gran viaje: un mundo por tabla, un gatito en cada cofre ---------- */
 const WORLDS = [
@@ -406,6 +407,12 @@ const KEY = 'leo-nifty-v1';
 const fresh = () => ({ coins: 0, owned: [], wear: { leo: {}, nifty: {} }, best: {}, misses: {}, sound: true, rescued: [], introSeen: false, finaleDone: false });
 let S = fresh();
 try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) {}
+/* Antes el collar y la bufanda iban al cuello y la abeja al cuerpo; ahora los tres son una sola ropa */
+for (const w of Object.values(S.wear)) {
+  const r = w.body || w.neck;
+  delete w.body; delete w.neck;
+  if (r && !w.ropa) w.ropa = r;
+}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
 /* ---------- Sonidos ---------- */
@@ -433,7 +440,7 @@ const sfx = {
 function catHTML(id, withBowl) {
   const c = CATS[id];
   return `<div class="cat" data-cat="${id}"><div class="cat-fig" style="aspect-ratio:${c.ratio}">` +
-    `<img class="cat-img" alt="${c.name}" src="${c.art.normal}" draggable="false"></div>` +
+    `<img class="cat-img" alt="${c.name}" src="${artSrc(id, 'normal')}" draggable="false"></div>` +
     (withBowl ? `<div class="bowl">${BOWL(BOWLS[id])}</div>` : '') +
     `<div class="cat-name">${c.name}</div></div>`;
 }
@@ -451,7 +458,7 @@ function dressCat(el) {
     fig.appendChild(d);
   }
 }
-function setMood(el, mood) { $('.cat-img', el).src = CATS[el.dataset.cat].art[mood]; }
+function setMood(el, mood) { $('.cat-img', el).src = artSrc(el.dataset.cat, mood); }
 function fillStage(box, ids, withBowl, kits) {
   box.innerHTML = ids.map(id => catHTML(id, withBowl)).join('') +
     (kits && kits.length ? `<div class="kits">${kits.map(n => `<img class="kit" src="${kitSrc(n)}" alt="${worldOf(n).kitten}" draggable="false">`).join('')}</div>` : '');
@@ -811,7 +818,7 @@ $('#btnEndMap').onclick = () => { R = null; show('map'); };
 $('#chest').onclick = openChest;
 $('#btnFinale').onclick = () => { R = null; show('casa'); };
 
-[...Object.values(CATS).map(c => c.art.feliz), 'img/cofre-abierto.webp'].forEach(src => { new Image().src = src; });
+[...Object.keys(CATS).map(id => artSrc(id, 'feliz')), 'img/cofre-abierto.webp'].forEach(src => { new Image().src = src; });
 renderSound();
 show('home');
 })();
