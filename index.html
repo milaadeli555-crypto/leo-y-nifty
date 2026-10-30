@@ -201,6 +201,13 @@ h1 em{font-style:normal;color:var(--ginger-deep)}
 .cuarto .cat[data-cat="leo"]{width:26%}
 .cuarto .cat[data-cat="nifty"]{width:20%}
 .cuarto .cat-name{display:none}
+/* afuera: la foto entera y los gatos parados sobre el camino de piedras, los gatitos más adelante */
+.stage.stage-afuera{aspect-ratio:1280/714;background-size:100% 100%;background-position:center;padding:0 18% 4.5%;gap:4%;align-items:flex-end}
+.stage-afuera .cat[data-cat="leo"]{width:40%}
+.stage-afuera .cat[data-cat="nifty"]{width:32%}
+.stage-afuera .cat-name{display:none}
+.stage-afuera .kits{position:absolute;left:0;right:0;bottom:1%;margin:0;z-index:2}
+.stage-afuera .cat::before,.cuarto .cat::before{bottom:-1%}
 .item.en-casa{box-shadow:0 0 0 4px var(--ginger),0 4px 0 rgba(34,49,74,.12)}
 .item.en-casa .item-price{color:var(--ginger-deep)}
 .kcard{background:var(--card);border-radius:20px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;
@@ -273,7 +280,7 @@ h1 em{font-style:normal;color:var(--ginger-deep)}
       <button type="button" data-cuarto="dormitorio" aria-pressed="false">Dormitorio</button>
       <button type="button" data-cuarto="bano" aria-pressed="false">Baño</button>
     </div>
-    <div class="stage stage-bg" id="casaStage"></div>
+    <div class="stage stage-bg stage-afuera" id="casaStage"></div>
     <div class="cuarto" id="cuarto" hidden></div>
     <p class="shop-note" id="casaNote"></p>
     <div class="kits-grid" id="kitsGrid"></div>
