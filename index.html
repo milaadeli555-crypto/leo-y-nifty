@@ -190,6 +190,19 @@ h1 em{font-style:normal;color:var(--ginger-deep)}
 .chest-kit.pop{animation:kitpop .7s cubic-bezier(.3,1.6,.5,1) both}
 .end-card p.chest-msg{font-weight:900;color:var(--ink);font-size:19px;text-wrap:balance}
 .kits-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+/* casa: el cuarto es una foto 4:3 y cada cosa comprada es una capa del mismo tamaño encima */
+.seg-casa{flex-wrap:wrap}
+.seg-casa button{flex:1 1 auto;font-size:17px;padding:8px 10px}
+.cuarto{position:relative;width:100%;aspect-ratio:1200/896;border-radius:30px;overflow:hidden;background:#E9D3BC center/100% 100% no-repeat;box-shadow:0 6px 0 rgba(34,49,74,.15)}
+.capa{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.capa.nueva{animation:capa .9s cubic-bezier(.3,1.4,.5,1)}
+@keyframes capa{0%{opacity:0;transform:translateY(-3%) scale(1.03)}100%{opacity:1;transform:none}}
+.cuarto .stage{position:absolute;left:0;right:0;bottom:2%;padding:0 6%;gap:6%;background:none;box-shadow:none;border-radius:0}
+.cuarto .cat[data-cat="leo"]{width:26%}
+.cuarto .cat[data-cat="nifty"]{width:20%}
+.cuarto .cat-name{display:none}
+.item.en-casa{box-shadow:0 0 0 4px var(--ginger),0 4px 0 rgba(34,49,74,.12)}
+.item.en-casa .item-price{color:var(--ginger-deep)}
 .kcard{background:var(--card);border-radius:20px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;
   box-shadow:0 4px 0 rgba(34,49,74,.12)}
 .kcard img{width:min(100%,110px);aspect-ratio:1;object-fit:contain}
@@ -253,9 +266,18 @@ h1 em{font-style:normal;color:var(--ginger-deep)}
       <button class="btn btn-small" id="btnCasaBack" type="button">← Inicio</button>
       <h2>La casa de los gatitos</h2>
     </div>
+    <div class="seg seg-casa" id="casaTabs">
+      <button type="button" data-cuarto="afuera" aria-pressed="true">Afuera</button>
+      <button type="button" data-cuarto="sala" aria-pressed="false">Sala</button>
+      <button type="button" data-cuarto="cocina" aria-pressed="false">Cocina</button>
+      <button type="button" data-cuarto="dormitorio" aria-pressed="false">Dormitorio</button>
+      <button type="button" data-cuarto="bano" aria-pressed="false">Baño</button>
+    </div>
     <div class="stage stage-bg" id="casaStage"></div>
+    <div class="cuarto" id="cuarto" hidden></div>
     <p class="shop-note" id="casaNote"></p>
     <div class="kits-grid" id="kitsGrid"></div>
+    <div class="items" id="muebles" hidden></div>
   </section>
 
   <section id="play" class="screen" hidden>
@@ -372,6 +394,44 @@ const ITEMS = [
 ].map(it => ({ ...it, pic: `img/ropa-${it.id}.webp` }));
 const artSrc = (id, mood) => { const r = S.wear[id] && S.wear[id].ropa; return r ? `img/${id}-${mood}-${r}.webp` : CATS[id].art[mood]; };
 
+/* ---------- La casa: cuartos para amueblar ---------- */
+/* Las cosas van en el orden en que se dibujan (de atrás hacia adelante). Cada una es img/casa-<cuarto>-<cosa>.webp del tamaño del cuarto. */
+const CUARTOS = [
+  { id: 'sala', name: 'Sala', lista: '¡La sala está lista!', items: [
+    { id: 'cuadro',   name: 'Cuadro de flores', price: 15 },
+    { id: 'cortinas', name: 'Cortinas rosadas', price: 25 },
+    { id: 'sofa',     name: 'Sofá rosado',      price: 45 },
+    { id: 'planta',   name: 'Planta',           price: 10 },
+    { id: 'lampara',  name: 'Lámpara de pie',   price: 30 },
+    { id: 'alfombra', name: 'Alfombra peluda',  price: 20 },
+  ] },
+  { id: 'cocina', name: 'Cocina', lista: '¡La cocina está lista!', items: [
+    { id: 'vajilla', name: 'Vajilla de flores',    price: 20 },
+    { id: 'frutero', name: 'Frutero',              price: 10 },
+    { id: 'tetera',  name: 'Tetera de porcelana',  price: 15 },
+    { id: 'horno',   name: 'Horno rosado',         price: 30 },
+    { id: 'nevera',  name: 'Refrigeradora',        price: 45 },
+    { id: 'mesa',    name: 'Mesa con sillitas',    price: 35 },
+  ] },
+  { id: 'dormitorio', name: 'Dormitorio', lista: '¡El dormitorio está listo!', items: [
+    { id: 'mesita',   name: 'Mesita con lamparita', price: 25 },
+    { id: 'cama',     name: 'Camita con corazón',   price: 50 },
+    { id: 'sillon',   name: 'Sillón rosado',        price: 35 },
+    { id: 'manta',    name: 'Manta de flores',      price: 15 },
+    { id: 'cojines',  name: 'Cojines',              price: 10 },
+    { id: 'alfombra', name: 'Alfombra suave',       price: 20 },
+  ] },
+  { id: 'bano', name: 'Baño', lista: '¡El baño está listo!', items: [
+    { id: 'espejo',   name: 'Espejo dorado',     price: 30 },
+    { id: 'toallas',  name: 'Toallas',           price: 20 },
+    { id: 'patito',   name: 'Patito de goma',    price: 10 },
+    { id: 'jabon',    name: 'Jabón y champú',    price: 15 },
+    { id: 'banera',   name: 'Tina con burbujas', price: 50 },
+    { id: 'alfombra', name: 'Alfombra de baño',  price: 20 },
+  ] },
+];
+const TOTAL_CASA = CUARTOS.reduce((n, c) => n + c.items.length, 0);
+
 /* ---------- El gran viaje: un mundo por tabla, un gatito en cada cofre ---------- */
 const WORLDS = [
   { n: 2,  name: 'Isla Soleada',             kitten: 'Canela',  text: 'En la Isla Soleada las palmeras cantan y la arena brilla. Canela se quedó dormida dentro de un cofre del tesoro.' },
@@ -404,7 +464,7 @@ const YUM = ['¡Miau, qué rico!', '¡Purrr-fecto!', '¡Bien hecho!', '¡Correct
 
 /* ---------- Memoria en esta tableta ---------- */
 const KEY = 'leo-nifty-v1';
-const fresh = () => ({ coins: 0, owned: [], wear: { leo: {}, nifty: {} }, best: {}, misses: {}, sound: true, rescued: [], introSeen: false, finaleDone: false });
+const fresh = () => ({ coins: 0, owned: [], wear: { leo: {}, nifty: {} }, best: {}, misses: {}, sound: true, rescued: [], introSeen: false, finaleDone: false, casa: [] });
 let S = fresh();
 try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) {}
 /* Antes el collar y la bufanda iban al cuello y la abeja al cuerpo; ahora los tres son una sola ropa */
@@ -744,16 +804,55 @@ function openWorld(n) {
   overlay('worldCard');
 }
 
+let casaTab = 'afuera';
 function renderCasa() {
+  $$('#casaTabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cuarto === casaTab)));
+  const afuera = casaTab === 'afuera';
+  $('#casaStage').hidden = !afuera; $('#kitsGrid').hidden = !afuera;
+  $('#cuarto').hidden = afuera; $('#muebles').hidden = afuera;
+  if (!afuera) return renderCuarto();
   const st = $('#casaStage'), k = S.rescued.length;
-  fillStage(st, ['leo', 'nifty'], false, family()); setBg(st, 'img/mundo-casa.webp');
-  $('#casaNote').textContent = k === 9 ? '¡La familia está completa! Toca a los gatitos para jugar con ellos.'
-    : k ? `${k} de 9 gatitos en casa. Los demás te esperan en el mapa.` : 'La casa está vacía. Los gatitos te esperan en el mapa de los mundos.';
+  fillStage(st, ['leo', 'nifty'], false, family()); setBg(st, 'img/casa-afuera.webp');
+  $('#casaNote').textContent = (k === 9 ? '¡La familia está completa! Toca a los gatitos para jugar con ellos.'
+    : k ? `${k} de 9 gatitos en casa. Los demás te esperan en el mapa.` : 'La casa está vacía. Los gatitos te esperan en el mapa de los mundos.') +
+    ` Casa amueblada: ${S.casa.length} de ${TOTAL_CASA} cosas.`;
   $('#kitsGrid').innerHTML = WORLDS.map(w => {
     const ok = S.rescued.includes(w.n);
     return `<div class="kcard${ok ? '' : ' missing'}"><img src="${kitSrc(w.n)}" alt="${ok ? w.kitten : ''}"><b>${ok ? w.kitten : '?'}</b>` +
       `<span>${ok ? `Volvió de ${w.name}` : `Espera en ${w.name}`}</span></div>`;
   }).join('');
+}
+/* nueva: la cosa recién comprada aparece con una animación */
+function renderCuarto(nueva) {
+  const c = CUARTOS.find(x => x.id === casaTab), box = $('#cuarto');
+  const tiene = it => S.casa.includes(`${c.id}-${it.id}`);
+  const k = c.items.filter(tiene).length, lista = k === c.items.length;
+  box.style.backgroundImage = `url(img/casa-${c.id}.webp)`;
+  box.innerHTML = c.items.filter(tiene).map(it =>
+    `<img class="capa${it.id === nueva ? ' nueva' : ''}" src="img/casa-${c.id}-${it.id}.webp" alt="">`).join('') +
+    (lista ? '<div class="stage" id="cuartoStage"></div>' : '');
+  if (lista) fillStage($('#cuartoStage'), ['leo', 'nifty'], false, family());
+  $('#casaNote').textContent = lista ? `${c.lista} Leo y Nifty se mudaron aquí.`
+    : `${k} de ${c.items.length} cosas. Compra todo y Leo y Nifty se mudan aquí.`;
+  const shelf = $('#muebles'); shelf.innerHTML = '';
+  [...c.items].sort((a, b) => a.price - b.price).forEach(it => {
+    const own = tiene(it);
+    const card = document.createElement('div');
+    card.className = 'item' + (own ? ' en-casa' : '');
+    card.innerHTML = `<div class="item-pic"><img src="img/casa-${c.id}-${it.id}-ico.webp" alt=""></div><div class="item-name">${it.name}</div>` +
+      (own ? '<div class="item-price">En la casa</div>'
+        : `<div class="item-price"><i class="coin sm"></i>${it.price}</div>` +
+          (S.coins >= it.price ? '<button class="btn btn-small btn-orange" type="button">Comprar</button>'
+            : `<button class="btn btn-small" type="button" disabled>Te faltan ${it.price - S.coins}</button>`));
+    const b = $('button', card);
+    if (b && !b.disabled) b.onclick = () => {
+      S.coins -= it.price; S.casa.push(`${c.id}-${it.id}`); save(); updateCoins(); sfx.coin();
+      renderCuarto(it.id);
+      if (c.items.every(tiene)) { sfx.win(); confetti(50); } else confetti(14);
+      $('#cuarto').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
+    };
+    shelf.appendChild(card);
+  });
 }
 
 /* ---------- Boutique ---------- */
@@ -799,7 +898,8 @@ $('#btnAgain').onclick = () => { const { mode, n } = R; startRound(mode === 'rev
 $('#btnEndShop').onclick = () => { R = null; show('shop'); };
 $('#btnEndHome').onclick = () => { R = null; show('home'); };
 $$('#shopTabs button').forEach(b => b.onclick = () => { shopCat = b.dataset.cat; renderShop(); });
-['#homeStage', '#shopStage', '#casaStage', '#finaleStage'].forEach(s => $(s).addEventListener('click', e => {
+$$('#casaTabs button').forEach(b => b.onclick = () => { casaTab = b.dataset.cuarto; renderCasa(); });
+['#homeStage', '#shopStage', '#casaStage', '#cuarto', '#finaleStage'].forEach(s => $(s).addEventListener('click', e => {
   const k = e.target.closest('.kit'); if (k) return hopKit(k);
   const c = e.target.closest('.cat'); if (c) cuddle(c);
 }));
@@ -816,7 +916,7 @@ $('#btnWcPlay').onclick = () => startRound('table', curWorld);
 $('#btnWcBack').onclick = () => { $('#worldCard').hidden = true; };
 $('#btnEndMap').onclick = () => { R = null; show('map'); };
 $('#chest').onclick = openChest;
-$('#btnFinale').onclick = () => { R = null; show('casa'); };
+$('#btnFinale').onclick = () => { R = null; casaTab = 'afuera'; show('casa'); };
 
 [...Object.keys(CATS).map(id => artSrc(id, 'feliz')), 'img/cofre-abierto.webp'].forEach(src => { new Image().src = src; });
 renderSound();
