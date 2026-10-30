@@ -395,7 +395,8 @@ const ITEMS = [
 const artSrc = (id, mood) => { const r = S.wear[id] && S.wear[id].ropa; return r ? `img/${id}-${mood}-${r}.webp` : CATS[id].art[mood]; };
 
 /* ---------- La casa: cuartos para amueblar ---------- */
-/* Las cosas van en el orden en que se dibujan (de atrás hacia adelante). Cada una es img/casa-<cuarto>-<cosa>.webp del tamaño del cuarto. */
+/* Las cosas van en el orden en que se dibujan (de atrás hacia adelante). Cada una es img/casa-<cuarto>-<cosa>.webp del tamaño del cuarto.
+   necesita: la cosa va encima de otra (ollitas en el horno), así que se compra después de ella. */
 const CUARTOS = [
   { id: 'sala', name: 'Sala', lista: '¡La sala está lista!', items: [
     { id: 'cuadro',   name: 'Cuadro de flores', price: 15 },
@@ -412,6 +413,12 @@ const CUARTOS = [
     { id: 'horno',   name: 'Horno rosado',         price: 30 },
     { id: 'nevera',  name: 'Refrigeradora',        price: 45 },
     { id: 'mesa',    name: 'Mesa con sillitas',    price: 35 },
+    { id: 'reloj',      name: 'Reloj de pared',     price: 10 },
+    { id: 'microondas', name: 'Microondas',         price: 30 },
+    { id: 'licuadora',  name: 'Licuadora',          price: 20 },
+    { id: 'ollas',      name: 'Ollitas',            price: 15, necesita: 'horno', pide: 'Primero compra el horno' },
+    { id: 'alfombra',   name: 'Alfombra de cocina', price: 20, necesita: 'mesa',  pide: 'Primero compra la mesa' },
+    { id: 'platos',     name: 'Platos y tazas con cucharitas', price: 25, necesita: 'mesa', pide: 'Primero compra la mesa' },
   ] },
   { id: 'dormitorio', name: 'Dormitorio', lista: '¡El dormitorio está listo!', items: [
     { id: 'mesita',   name: 'Mesita con lamparita', price: 25 },
@@ -836,13 +843,14 @@ function renderCuarto(nueva) {
     : `${k} de ${c.items.length} cosas. Compra todo y Leo y Nifty se mudan aquí.`;
   const shelf = $('#muebles'); shelf.innerHTML = '';
   [...c.items].sort((a, b) => a.price - b.price).forEach(it => {
-    const own = tiene(it);
+    const own = tiene(it), falta = it.necesita && !S.casa.includes(`${c.id}-${it.necesita}`);
     const card = document.createElement('div');
     card.className = 'item' + (own ? ' en-casa' : '');
     card.innerHTML = `<div class="item-pic"><img src="img/casa-${c.id}-${it.id}-ico.webp" alt=""></div><div class="item-name">${it.name}</div>` +
       (own ? '<div class="item-price">En la casa</div>'
         : `<div class="item-price"><i class="coin sm"></i>${it.price}</div>` +
-          (S.coins >= it.price ? '<button class="btn btn-small btn-orange" type="button">Comprar</button>'
+          (falta ? `<button class="btn btn-small" type="button" disabled>${it.pide}</button>`
+            : S.coins >= it.price ? '<button class="btn btn-small btn-orange" type="button">Comprar</button>'
             : `<button class="btn btn-small" type="button" disabled>Te faltan ${it.price - S.coins}</button>`));
     const b = $('button', card);
     if (b && !b.disabled) b.onclick = () => {
