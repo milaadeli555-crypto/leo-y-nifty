@@ -405,6 +405,12 @@ const CUARTOS = [
     { id: 'planta',   name: 'Planta',           price: 10 },
     { id: 'lampara',  name: 'Lámpara de pie',   price: 30 },
     { id: 'alfombra', name: 'Alfombra peluda',  price: 20 },
+    { id: 'guirnalda', name: 'Guirnalda de lucecitas', price: 25 },
+    { id: 'repisa',    name: 'Repisa con libros',      price: 15 },
+    { id: 'rascador',  name: 'Rascador para gatitos',  price: 35 },
+    { id: 'cojines',   name: 'Cojines para el sofá',   price: 10, necesita: 'sofa',     pide: 'Primero compra el sofá' },
+    { id: 'mesita',    name: 'Mesita de centro',       price: 20, necesita: 'alfombra', pide: 'Primero compra la alfombra' },
+    { id: 'juguetes',  name: 'Ovillo y ratoncito',     price: 10 },
   ] },
   { id: 'cocina', name: 'Cocina', lista: '¡La cocina está lista!', items: [
     { id: 'vajilla', name: 'Vajilla de flores',    price: 20 },
@@ -427,6 +433,12 @@ const CUARTOS = [
     { id: 'manta',    name: 'Manta de flores',      price: 15 },
     { id: 'cojines',  name: 'Cojines',              price: 10 },
     { id: 'alfombra', name: 'Alfombra suave',       price: 20 },
+    { id: 'estrellas', name: 'Estrellitas colgantes', price: 15 },
+    { id: 'lampara',   name: 'Lámpara de techo',      price: 30 },
+    { id: 'cuadro',    name: 'Cuadro de corazón',     price: 15 },
+    { id: 'repisa',    name: 'Repisa con velitas',    price: 15 },
+    { id: 'osito',     name: 'Osito de peluche',      price: 20, necesita: 'cama', pide: 'Primero compra la camita' },
+    { id: 'canasta',   name: 'Canasta con ovillos',   price: 15 },
   ] },
   { id: 'bano', name: 'Baño', lista: '¡El baño está listo!', items: [
     { id: 'espejo',   name: 'Espejo dorado',     price: 30 },
@@ -435,6 +447,12 @@ const CUARTOS = [
     { id: 'jabon',    name: 'Jabón y champú',    price: 15 },
     { id: 'banera',   name: 'Tina con burbujas', price: 50 },
     { id: 'alfombra', name: 'Alfombra de baño',  price: 20 },
+    { id: 'planta',   name: 'Planta colgante',     price: 15 },
+    { id: 'lampara',  name: 'Lámpara de techo',    price: 25 },
+    { id: 'repisa',   name: 'Repisa con velitas',  price: 15 },
+    { id: 'juguetes', name: 'Barquito y pececito', price: 10, necesita: 'banera', pide: 'Primero compra la tina' },
+    { id: 'taburete', name: 'Banquito rosado',     price: 15 },
+    { id: 'cesto',    name: 'Cesto de ropa',       price: 20 },
   ] },
 ];
 const TOTAL_CASA = CUARTOS.reduce((n, c) => n + c.items.length, 0);
