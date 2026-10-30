@@ -191,8 +191,8 @@ h1 em{font-style:normal;color:var(--ginger-deep)}
 .end-card p.chest-msg{font-weight:900;color:var(--ink);font-size:19px;text-wrap:balance}
 .kits-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 /* casa: el cuarto es una foto 4:3 y cada cosa comprada es una capa del mismo tamaño encima */
-.seg-casa{flex-wrap:wrap}
-.seg-casa button{flex:1 1 auto;font-size:17px;padding:8px 10px}
+.seg-casa{gap:2px}
+.seg-casa button{flex:1 1 auto;font-size:clamp(13px,3.7vw,18px);padding:8px 4px;white-space:nowrap}
 .cuarto{position:relative;width:100%;aspect-ratio:1200/896;border-radius:30px;overflow:hidden;background:#E9D3BC center/100% 100% no-repeat;box-shadow:0 6px 0 rgba(34,49,74,.15)}
 .capa{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .capa.nueva{animation:capa .9s cubic-bezier(.3,1.4,.5,1)}
